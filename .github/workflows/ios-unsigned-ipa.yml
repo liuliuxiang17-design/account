@@ -1,0 +1,94 @@
+name: ios-unsigned-ipa
+
+# 产出未签名 IPA，下载后用 Sideloadly 以免费 Apple ID 签名安装。
+# 免费证书 7 天过期：续签只需重跑 Sideloadly，不必重新编译。
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'shared/**'
+      - 'iosApp/**'
+      - 'gradle/**'
+      - '.github/workflows/ios-unsigned-ipa.yml'
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Windows 上提交的仓库会丢失可执行位，Xcode 的 Run Script 会报 Permission denied
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          # 先取最新稳定版；跑通后可改成具体版本（如 16.4）以固定结果
+          xcode-version: latest-stable
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.konan
+          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: |
+            konan-${{ runner.os }}-
+
+      - name: Print toolchain versions
+        run: |
+          xcodebuild -version
+          java -version
+          ./gradlew --version
+          xcodebuild -project iosApp/iosApp.xcodeproj -list
+
+      - name: iOS unit tests
+        run: ./gradlew :shared:iosSimulatorArm64Test
+
+      - name: Build unsigned app
+        run: |
+          xcodebuild \
+            -project iosApp/iosApp.xcodeproj \
+            -scheme iosApp \
+            -configuration Debug \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
+            build
+
+      - name: Package IPA
+        run: |
+          set -euo pipefail
+          APP_PATH="build/Build/Products/Debug-iphoneos/KotlinProject.app"
+          if [ ! -d "$APP_PATH" ]; then
+            echo "找不到 $APP_PATH，实际产物："
+            find build/Build/Products -maxdepth 3 -name '*.app' -print
+            exit 1
+          fi
+          rm -rf Payload RedcakeFinance-unsigned.ipa
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/
+          zip -qry RedcakeFinance-unsigned.ipa Payload
+          # 不要用 `| head`：unzip 收到 SIGPIPE 会被 pipefail 判成失败
+          unzip -l RedcakeFinance-unsigned.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RedcakeFinance-unsigned-ipa
+          path: RedcakeFinance-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 14
