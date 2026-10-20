@@ -35,7 +35,8 @@ import com.redcakefinance.core.storage.Ledger
 import com.redcakefinance.platform.PlatformClock
 import com.redcakefinance.ui.theme.AccentGold
 import com.redcakefinance.ui.theme.AccentRed
-import com.redcakefinance.ui.theme.AccentRedLightimport com.redcakefinance.ui.theme.DarkSurface
+import com.redcakefinance.ui.theme.AccentRedLight
+import com.redcakefinance.ui.theme.DarkSurface
 import com.redcakefinance.ui.theme.DarkSurfaceHigh
 import com.redcakefinance.ui.theme.OnDarkFaint
 import com.redcakefinance.ui.theme.OnDarkPrimary
@@ -204,7 +205,6 @@ private fun ChartCard(
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(title, style = MaterialTheme.typography.titleMedium, color = OnDarkPrimary, fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.height(0.dp))
                 Text(
                     "  " + subtitle,
                     style = MaterialTheme.typography.labelSmall,
