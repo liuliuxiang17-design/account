@@ -8,6 +8,11 @@ plugins {
 }
 
 kotlin {
+    // 仅用于本机快速验证：iOS 目标无法在 Windows 上编译，而 Android 目标需要完整 SDK。
+    // JVM 目标让 commonTest 里的引擎测试在任意装了 JDK 的机器上跑，不必等 CI。
+    // 不参与 Android APK 与 iOS App 的构建，也不被打进产物。
+    jvm()
+
     listOf(
         iosArm64(),
         iosSimulatorArm64()
