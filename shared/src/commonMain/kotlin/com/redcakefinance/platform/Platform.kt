@@ -16,6 +16,9 @@ expect object KeyValueStore {
 /** 读取剪贴板文本；无内容或不可用时返回 null。 */
 expect object Clipboard {
     fun readText(): String?
+
+    /** 写入剪贴板；不可用时返回 false。 */
+    fun writeText(text: String): Boolean
 }
 
 /** 当前时间（epoch millis）。 */

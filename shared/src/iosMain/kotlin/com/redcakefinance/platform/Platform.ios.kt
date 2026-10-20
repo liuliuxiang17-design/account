@@ -28,6 +28,13 @@ actual object Clipboard {
         val text = board.string ?: return null
         return text.ifBlank { null }
     }
+
+    actual fun writeText(text: String): Boolean = try {
+        UIPasteboard.generalPasteboard.string = text
+        true
+    } catch (e: Throwable) {
+        false
+    }
 }
 
 /**

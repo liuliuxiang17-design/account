@@ -15,7 +15,8 @@ import com.redcakefinance.core.model.TransactionOrigin
  * 可空字段用前缀区分：`-` 表示 null，`=` 后跟转义后的值表示非空。
  */
 object LedgerCodec {
-    private const val HEADER = "REDCAKE1"
+    /** 备份文本的版本头；解码时用它判断这是不是本应用的备份。 */
+    const val HEADER = "REDCAKE1"
     private const val SEP = '\t'
 
     private const val KIND_TXN = "T"

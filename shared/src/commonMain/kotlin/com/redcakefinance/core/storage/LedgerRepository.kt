@@ -105,6 +105,25 @@ class LedgerRepository {
         return Ledger()
     }
 
+    /** 导出整份账本文本（备份用，格式见 [LedgerCodec]）。 */
+    fun exportText(): String = LedgerCodec.encode(load())
+
+    /**
+     * 从备份文本整份恢复。
+     *
+     * 采用「整体替换」而不是合并：恢复的语义是把手机上的账本还原到备份那一刻，
+     * 合并会在重复导入时产出难以解释的重复流水。
+     *
+     * @return 恢复后的账本；文本不是本应用的备份格式时返回 null（原数据不动）
+     */
+    fun restoreFromText(text: String): Ledger? {
+        if (!text.contains(LedgerCodec.HEADER)) return null
+        val restored = LedgerCodec.decode(text)
+        if (restored.transactions.isEmpty() && restored.checkpoints.isEmpty()) return null
+        save(restored)
+        return restored
+    }
+
     private companion object {
         const val KEY = "ledger_v1"
     }

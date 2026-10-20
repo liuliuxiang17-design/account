@@ -18,6 +18,8 @@ actual object KeyValueStore {
 
 actual object Clipboard {
     actual fun readText(): String? = null
+
+    actual fun writeText(text: String): Boolean = false
 }
 
 actual object PlatformClock {
