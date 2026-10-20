@@ -424,7 +424,9 @@ object BalanceTruth {
         val flowsBySender = flows.groupBy { it.sender ?: "" }
         val intervals = ArrayList<IntervalMatch>(timeline.steps.size)
         val orphans = ArrayList<FlowMatch>()
-        timeline.stepsBySender.toSortedMap().forEach { (sender, steps) ->
+        // 按发件人名排序保证输出稳定；不用 toSortedMap（JVM 专有，Kotlin/Native 没有）
+        timeline.stepsBySender.keys.sorted().forEach { sender ->
+            val steps = timeline.stepsBySender.getValue(sender)
             val r = matchSender(sender, steps, flowsBySender[sender].orEmpty())
             intervals += r.intervals
             orphans += r.orphans
